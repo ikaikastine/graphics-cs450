@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0AABF8DC1DA2F331004CF20F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0AABF8DB1DA2F331004CF20F /* main.cpp */; };
+		0AABF8E31DA2F35D004CF20F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0AABF8E21DA2F35D004CF20F /* main.cpp */; };
+		0AABF8E61DA2F395004CF20F /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AABF8E51DA2F395004CF20F /* GLUT.framework */; };
+		0AABF8E81DA2F399004CF20F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AABF8E71DA2F399004CF20F /* OpenGL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +26,11 @@
 
 /* Begin PBXFileReference section */
 		0AABF8D81DA2F331004CF20F /* Project 2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Project 2"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0AABF8DB1DA2F331004CF20F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		0AABF8E21DA2F35D004CF20F /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = "Project 2/main.cpp"; sourceTree = "<group>"; };
+		0AABF8E51DA2F395004CF20F /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0AABF8E71DA2F399004CF20F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		0AABF8E91DA2F429004CF20F /* glut.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glut.h; path = "Project 2/glut.h"; sourceTree = "<group>"; };
+		0AABF8EA1DA2F4BC004CF20F /* heli.550 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = heli.550; path = "Project 2/heli.550"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +38,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0AABF8E81DA2F399004CF20F /* OpenGL.framework in Frameworks */,
+				0AABF8E61DA2F395004CF20F /* GLUT.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,8 +49,12 @@
 		0AABF8CF1DA2F331004CF20F = {
 			isa = PBXGroup;
 			children = (
+				0AABF8E21DA2F35D004CF20F /* main.cpp */,
+				0AABF8EA1DA2F4BC004CF20F /* heli.550 */,
+				0AABF8E91DA2F429004CF20F /* glut.h */,
 				0AABF8DA1DA2F331004CF20F /* Project 2 */,
 				0AABF8D91DA2F331004CF20F /* Products */,
+				0AABF8E41DA2F395004CF20F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -57,9 +69,17 @@
 		0AABF8DA1DA2F331004CF20F /* Project 2 */ = {
 			isa = PBXGroup;
 			children = (
-				0AABF8DB1DA2F331004CF20F /* main.cpp */,
 			);
 			path = "Project 2";
+			sourceTree = "<group>";
+		};
+		0AABF8E41DA2F395004CF20F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0AABF8E71DA2F399004CF20F /* OpenGL.framework */,
+				0AABF8E51DA2F395004CF20F /* GLUT.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,7 +139,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0AABF8DC1DA2F331004CF20F /* main.cpp in Sources */,
+				0AABF8E31DA2F35D004CF20F /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +236,7 @@
 		0AABF8E01DA2F331004CF20F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = "-Wno-deprecated";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -223,6 +244,7 @@
 		0AABF8E11DA2F331004CF20F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = "-Wno-deprecated";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -246,6 +268,7 @@
 				0AABF8E11DA2F331004CF20F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

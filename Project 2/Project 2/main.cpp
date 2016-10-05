@@ -19,7 +19,8 @@
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
-//#include "glut.h"
+#include "glut.h"
+#include "heli.550"
 
 
 //	This is a sample OpenGL / GLUT program
@@ -216,6 +217,8 @@ void	Visibility( int );
 
 void	Axes( float );
 void	HsvRgb( float[3], float [3] );
+void    Cross( float[3], float[3], float[3] );
+float   Unit( float[3], float[3] );
 
 // main program:
 
@@ -674,64 +677,51 @@ InitGraphics( )
 void
 InitLists( )
 {
-	float dx = BOXSIZE / 2.f;
-	float dy = BOXSIZE / 2.f;
-	float dz = BOXSIZE / 2.f;
-	glutSetWindow( MainWindow );
-
-	// create the object:
-
-	BoxList = glGenLists( 1 );
-	glNewList( BoxList, GL_COMPILE );
-
+    glutSetWindow( MainWindow );
     
-    float NUMSEGS = 1000;
-    float radius = BOXSIZE / 2.f;
+    // Create the object:
+    BoxList = glGenLists( 1 );
+    glNewList(BoxList, GL_COMPILE);
     
-    float ang = 2. * M_PI / (float) (NUMSEGS - 1);
-    glBegin( GL_LINE_LOOP);
-    for (int j = 0; j < NUMSEGS; j++) {
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(1., 0., 0.);
-            glVertex3f( radius * cos(j), radius * sin(j), 0.);
-            j += ang;
-        }
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(1., 1., 0.);
-            glVertex3f( radius * cos(j), 0., radius * sin(j));
-            j += ang;
-        }
-
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(1., 0., 1.);
-            glVertex3f( radius * sin(j), radius * cos(j), 0.);
-            j += ang;
-        }
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(0., 1., 1.);
-            glVertex3f( 0., radius * cos(j), radius * sin(j));
-            j += ang;
-        }
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(1., 0.5, 0.5);
-            glVertex3f( radius * sin(j), 0., radius * cos(j));
-            j += ang;
-        }
-        for (int i = 0; i < NUMSEGS; i++) {
-            glColor3f(0.5, 0.5, 0.5);
-            glVertex3f( 0., radius * sin(j), radius * cos(j));
-            j += ang;
-        }
+    int i;
+    struct point *p0, *p1, *p2;
+    struct tri *tp;
+    float p01[3], p02[3], n[3];
+    
+    glPushMatrix( );
+    glTranslatef( 0., -1., 0. );
+    glRotatef(  97.,   0., 1., 0. );
+    glRotatef( -15.,   0., 0., 1. );
+    glBegin( GL_TRIANGLES );
+    for( i=0, tp = Helitris; i < Helintris; i++, tp++ )
+    {
+        p0 = &Helipoints[ tp->p0 ];
+        p1 = &Helipoints[ tp->p1 ];
+        p2 = &Helipoints[ tp->p2 ];
         
+        // fake "lighting" from above:
         
+        p01[0] = p1->x - p0->x;
+        p01[1] = p1->y - p0->y;
+        p01[2] = p1->z - p0->z;
+        p02[0] = p2->x - p0->x;
+        p02[1] = p2->y - p0->y;
+        p02[2] = p2->z - p0->z;
+        Cross( p01, p02, n );
+        Unit( n, n );
+        n[1] = fabs( n[1] );
+        n[1] += .25;
+        if( n[1] > 1. )
+            n[1] = 1.;
+        glColor3f( 0., n[1], 0. );
         
+        glVertex3f( p0->x, p0->y, p0->z );
+        glVertex3f( p1->x, p1->y, p1->z );
+        glVertex3f( p2->x, p2->y, p2->z );
     }
-    
-    
-
     glEnd( );
-
-	glEndList( );
+    glPopMatrix( );
+    glEndList();
 
 }
 
@@ -1104,4 +1094,41 @@ HsvRgb( float hsv[3], float rgb[3] )
 	rgb[0] = r;
 	rgb[1] = g;
 	rgb[2] = b;
+}
+
+
+float
+Dot( float v1[3], float v2[3] )
+{
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+}
+void
+Cross( float v1[3], float v2[3], float vout[3] )
+{
+    float tmp[3];
+    tmp[0] = v1[1]*v2[2] - v2[1]*v1[2];
+    tmp[1] = v2[0]*v1[2] - v1[0]*v2[2];
+    tmp[2] = v1[0]*v2[1] - v2[0]*v1[1];
+    vout[0] = tmp[0];
+    vout[1] = tmp[1];
+    vout[2] = tmp[2];
+}
+float
+Unit( float vin[3], float vout[3] )
+{
+    float dist = vin[0]*vin[0] + vin[1]*vin[1] + vin[2]*vin[2];
+    if( dist > 0.0 )
+    {
+        dist = sqrt( dist );
+        vout[0] = vin[0] / dist;
+        vout[1] = vin[1] / dist;
+        vout[2] = vin[2] / dist;
+    }
+    else
+    {
+        vout[0] = vin[0];
+        vout[1] = vin[1];
+        vout[2] = vin[2];
+    }
+    return dist;
 }
