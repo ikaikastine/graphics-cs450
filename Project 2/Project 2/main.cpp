@@ -50,8 +50,15 @@
 
 // title of these windows:
 
-const char *WINDOWTITLE = { "OpenGL / GLUT Sample -- Joe Graphics" };
+const char *WINDOWTITLE = { "Project 2 -- Kevin Stine" };
 const char *GLUITITLE   = { "User Interface Window" };
+
+// blade parameters:
+
+#define BLADE_RADIUS    1.0
+#define BLADE_WIDTH     0.4
+
+
 
 
 // what the glui package defines as true and false:
@@ -99,8 +106,14 @@ const int RIGHT  = { 1 };
 
 enum Projections
 {
-	ORTHO,
-	PERSP
+	PERSP,
+    ORTHO
+};
+
+enum Views
+{
+    INSIDE,
+    OUTSIDE
 };
 
 
@@ -190,6 +203,13 @@ int		WhichColor;				// index into Colors[ ]
 int		WhichProjection;		// ORTHO or PERSP
 int		Xmouse, Ymouse;			// mouse values
 float	Xrot, Yrot;				// rotation angles in degrees
+int     BLADE_ANGLE;
+float   Time;
+int     MS_IN_THE_ANIMATION_CYCLE;
+GLuint  TopBlades;
+GLuint  RearBlades;
+GLuint  RandomDraw;
+int     WhichView;
 
 
 // function prototypes:
@@ -202,6 +222,7 @@ void	DoDepthMenu( int );
 void	DoDebugMenu( int );
 void	DoMainMenu( int );
 void	DoProjectMenu( int );
+void    DoViewMenu( int );
 void	DoRasterString( float, float, float, char * );
 void	DoStrokeString( float, float, float, float, char * );
 float	ElapsedSeconds( );
@@ -257,8 +278,11 @@ main( int argc, char *argv[ ] )
 	// (this will never return)
 
 	glutSetWindow( MainWindow );
-	glutMainLoop( );
-
+	
+    Animate();
+    
+    glutMainLoop( );
+    
 
 	// this is here to make the compiler happy:
 
@@ -282,7 +306,12 @@ Animate( )
 	// force a call to Display( ) next time it is convenient:
 
 	glutSetWindow( MainWindow );
-	glutPostRedisplay( );
+	
+    int ms = glutGet( GLUT_ELAPSED_TIME );	// milliseconds
+    ms  =  MS_IN_THE_ANIMATION_CYCLE;
+    Time = (float)ms  /  (float)MS_IN_THE_ANIMATION_CYCLE;        // [ 0., 1. )
+    BLADE_ANGLE += 1;
+    glutPostRedisplay( );
 }
 
 
@@ -331,21 +360,27 @@ Display( )
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-	if( WhichProjection == ORTHO )
+	if( WhichProjection == PERSP )
+        gluPerspective( 90., 1.,	0.1, 1000. );
+    else
 		glOrtho( -3., 3.,     -3., 3.,     0.1, 1000. );
-	else
-		gluPerspective( 90., 1.,	0.1, 1000. );
+	
+		
 
 
 	// place the objects into the scene:
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity( );
-
+    if (WhichView == OUTSIDE)
+        gluLookAt( 5., 9., 5.,     0., 0., 0.,     0., 1., 0. );
+    else
+        gluLookAt( -0.4, 1.8, -4.9,     0., 0., 0.,     0., 1., 0. );
+        
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0., 0., 3.,     0., 0., 0.,     0., 1., 0. );
+	
 
 
 	// rotate the scene:
@@ -353,6 +388,8 @@ Display( )
 	glRotatef( (GLfloat)Yrot, 0., 1., 0. );
 	glRotatef( (GLfloat)Xrot, 1., 0., 0. );
 
+    //glLoadIdentity();
+    
 
 	// uniformly scale the scene:
 
@@ -392,14 +429,30 @@ Display( )
 	glEnable( GL_NORMALIZE );
 
 
-	// draw the current object:
-
+    
+    
+	// draw the helicopter
+    
 	glCallList( BoxList );
+    
+    
 
-
-	
-
-
+    // draw the top blade and animate it
+    glPushMatrix();
+    glTranslatef(0., 2.9, -2.);
+    glRotatef(BLADE_ANGLE, 0., 1., 0.);
+    glTranslatef(0., -2.9, 2.);
+    glCallList( TopBlades );
+    glPopMatrix();
+    
+    // draw the rear blade and animate it
+    glPushMatrix();
+    glTranslatef(.5, 2.5, 9.);
+    glRotatef(BLADE_ANGLE*3, 1., 0., 0.);
+    glTranslatef(-.5, -2.5, -9.);
+    glCallList( RearBlades );
+    glPopMatrix();
+    
 	// swap the double-buffered framebuffers:
 
 	glutSwapBuffers( );
@@ -491,6 +544,13 @@ DoProjectMenu( int id )
 	glutPostRedisplay( );
 }
 
+void
+DoViewMenu( int id )
+{
+    WhichView = id;
+    glutSetWindow( MainWindow );
+    glutPostRedisplay( );
+}
 
 // use glut to display a string of characters using a raster font:
 
@@ -569,8 +629,13 @@ InitMenus( )
 	int projmenu = glutCreateMenu( DoProjectMenu );
 	glutAddMenuEntry( "Orthographic",  ORTHO );
 	glutAddMenuEntry( "Perspective",   PERSP );
+    
+    int viewmenu = glutCreateMenu( DoViewMenu );
+    glutAddMenuEntry( "Inside", INSIDE );
+    glutAddMenuEntry( "Outside", OUTSIDE );
 
 	int mainmenu = glutCreateMenu( DoMainMenu );
+    glutAddSubMenu(   "View",          viewmenu );
 	glutAddSubMenu(   "Axes",          axesmenu);
 	glutAddSubMenu(   "Colors",        colormenu);
 	glutAddSubMenu(   "Depth Cue",     depthcuemenu);
@@ -651,7 +716,7 @@ InitGraphics( )
 	glutTabletButtonFunc( NULL );
 	glutMenuStateFunc( NULL );
 	glutTimerFunc( -1, NULL, 0 );
-	glutIdleFunc( NULL );
+	glutIdleFunc( Animate );
 
 	// init glew (a window must be open to do this):
 
@@ -722,6 +787,45 @@ InitLists( )
     glEnd( );
     glPopMatrix( );
     glEndList();
+    
+    
+    // Draw top helicopter blades
+    
+    TopBlades = glGenLists( 1 );
+    glNewList(TopBlades, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(0., 2.9, -2);
+    glRotatef(90, 1., 0., 0);
+    glBegin( GL_TRIANGLES );
+    glVertex2f(  BLADE_RADIUS*5,  BLADE_WIDTH/2. );
+    glVertex2f(  0., 0. );
+    glVertex2f(  BLADE_RADIUS*5, -BLADE_WIDTH/2. );
+    
+    glVertex2f( -BLADE_RADIUS*5, -BLADE_WIDTH/2. );
+    glVertex2f(  0., 0. );
+    glVertex2f( -BLADE_RADIUS*5,  BLADE_WIDTH/2. );
+    glEnd( );
+    glPopMatrix();
+    glEndList();
+    
+    // Draw rear helicopter blades
+    
+    RearBlades = glGenLists( 1 );
+    glNewList(RearBlades, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(.5, 2.5, 9);
+    glRotatef(90, 0., 1., 0);
+    glBegin( GL_TRIANGLES );
+    glVertex2f(  BLADE_RADIUS*1.5,  BLADE_WIDTH/2. );
+    glVertex2f(  0., 0. );
+    glVertex2f(  BLADE_RADIUS*1.5, -BLADE_WIDTH/2. );
+    
+    glVertex2f( -BLADE_RADIUS*1.5, -BLADE_WIDTH/2. );
+    glVertex2f(  0., 0. );
+    glVertex2f( -BLADE_RADIUS*1.5,  BLADE_WIDTH/2. );
+    glEnd( );
+    glPopMatrix();
+    glEndList();
 
 }
 
@@ -736,16 +840,16 @@ Keyboard( unsigned char c, int x, int y )
 
 	switch( c )
 	{
-		case 'o':
-		case 'O':
-			WhichProjection = ORTHO;
-			break;
-
 		case 'p':
 		case 'P':
 			WhichProjection = PERSP;
 			break;
 
+        case 'o':
+        case 'O':
+            WhichProjection = ORTHO;
+            break;
+        
 		case 'q':
 		case 'Q':
 		case ESCAPE:
