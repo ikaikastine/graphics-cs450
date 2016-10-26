@@ -112,8 +112,8 @@ enum Projections
 
 enum Views
 {
-    INSIDE,
-    OUTSIDE
+    OUTSIDE,
+    INSIDE
 };
 
 enum Textures
