@@ -305,6 +305,8 @@ int     WhichTex;
 GLuint  tex0, tex1, textureBind;
 int     textureView;
 GLuint  DistortList;
+GLuint  TorusList;
+GLuint  CubeList;
 
 
 // function prototypes:
@@ -461,8 +463,8 @@ Display( )
     if( WhichProjection == PERSP )
         gluPerspective( 90., 1.,	0.1, 1000. );
     else
-        glOrtho( -3., 3.,     -3., 3.,     0.1, 1000. );
-    
+        //glOrtho( -3., 3.,     -3., 3.,     0.1, 1000. );
+        glOrtho(-20., 20., -20., 20., 0.1, 1000.);
     
     
     
@@ -533,11 +535,13 @@ Display( )
     
     // draw the helicopter
 
+    glPushMatrix();
+    glCallList( TorusList );
+    glPopMatrix();
     
-    glCallList( BoxList );
-    
-    
-    
+    glPushMatrix();
+    glCallList( CubeList );
+    glPopMatrix();
     
     // swap the double-buffered framebuffers:
     
@@ -845,12 +849,37 @@ InitLists( )
     
     glutSetWindow( MainWindow );
     
-    // Create the object:
-    BoxList = glGenLists( 1 );
-    glNewList(BoxList, GL_COMPILE);
+    // Setup Torus List
+    TorusList = glGenLists( 1 );
+    
+    glNewList(TorusList, GL_COMPILE);
+    
+        glTranslatef(3., 3., -2.);
+    
+        glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    
+        glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., 20., 20.));
+    
+        glShadeModel(GL_SMOOTH);
+    
+        glEnable( GL_LIGHTING );
+    
+        glEnable(GL_LIGHT0);
+    
+        glColor3f(1, 0, 0);
+    
+        glutSolidTorus(2, 5, 100, 100);
+    
+    glEndList();
     
     
-    //glutSolidSphere(5, 100, 100);
+    // Setup Cube List
+    
+    CubeList = glGenLists( 1 );
+    
+    glNewList(CubeList, GL_COMPILE);
+    
+    glTranslatef(-3., -3., 2);
     
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
     
@@ -862,10 +891,9 @@ InitLists( )
     
     glEnable(GL_LIGHT0);
     
-    //glNormal3f(1, 0, 0);
     glColor3f(1, 0, 0);
     
-    glutSolidTorus(2, 5, 100, 100);
+    glutSolidCube( 2 );
     
     glEndList();
    
