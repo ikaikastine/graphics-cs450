@@ -167,6 +167,7 @@ MulArray3( float factor, float array0[3])
 // window background color (rgba):
 
 const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
+//const GLfloat BACKCOLOR[ ] = { 1., 1., 1., 1. };
 
 
 // line width for the axes:
@@ -310,6 +311,14 @@ int     textureView;
 GLuint  DistortList;
 GLuint  TorusList;
 GLuint  CubeList;
+GLuint  TeaList;
+
+bool    Light0On;
+bool    Light1On;
+bool    Light2On;
+GLuint  LightZero;
+GLuint  LightOne;
+GLuint  LightTwo;
 
 
 // function prototypes:
@@ -342,9 +351,7 @@ void	HsvRgb( float[3], float [3] );
 void    Cross( float[3], float[3], float[3] );
 float   Unit( float[3], float[3] );
 
-void    MjbSphere( float, int, int );
-//unsigned char * BmpToTexture( char, int, int );
-unsigned char *   BmpToTexture(char *, int *, int *);
+void    SetMaterial(float, float, float, float);
 
 // main program:
 
@@ -476,7 +483,7 @@ Display( )
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity( );
     if (WhichView == OUTSIDE)
-        gluLookAt( 5., 9., 5.,     0., 0., 0.,     0., 1., 0. );
+        gluLookAt( 2., 2., 2.,     0., 0., 0.,     0., 1., 0. );
     else
         gluLookAt( -0.4, 1.8, -4.9,     0., 0., 0.,     0., 1., 0. );
     
@@ -535,16 +542,33 @@ Display( )
     
     glEnable( GL_NORMALIZE );
     
+ 
     
     // draw the helicopter
 
-    glPushMatrix();
-    glCallList( TorusList );
-    glPopMatrix();
+    
+    if (Light0On)
+        glEnable(GL_LIGHT0);
+    else
+        glDisable(GL_LIGHT0);
+    if (Light1On)
+        glEnable(GL_LIGHT1);
+    else
+        glDisable(GL_LIGHT1);
+    if (Light2On)
+        glEnable(GL_LIGHT2);
+    else
+        glDisable(GL_LIGHT2);
     
     glPushMatrix();
+    glCallList( TorusList );
     glCallList( CubeList );
+    glCallList( TeaList );
+    glCallList( LightZero );
+    glCallList( LightOne );
+    glCallList( LightTwo );
     glPopMatrix();
+    
     
     // swap the double-buffered framebuffers:
     
@@ -857,7 +881,7 @@ InitLists( )
     
     glNewList(TorusList, GL_COMPILE);
     
-    glTranslatef(3., 3., -2.);
+    glTranslatef(1., 1., -2.);
     
     glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
     glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
@@ -872,19 +896,23 @@ InitLists( )
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
     
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
-    glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., 20., 20.));
+    glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., -2., 0.));
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
     
     glShadeModel(GL_FLAT);
     
     glEnable( GL_LIGHTING );
     
-    glEnable(GL_LIGHT0);
     
-    glColor3f(1, 0, 0);
+    //glColor3f(1, 0, 0);
     
-    glutSolidTorus(1, 2, 100, 100);
+    glutSolidTorus(.5, 1, 100, 100);
+    
+    glDisable(GL_LIGHT0);
     
     glEndList();
     
@@ -895,7 +923,7 @@ InitLists( )
     
     glNewList(CubeList, GL_COMPILE);
     
-    glTranslatef(-5., -5., 5);
+    glTranslatef(-2., -2., 2);
     
     glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
     glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
@@ -903,31 +931,109 @@ InitLists( )
     glMaterialf(GL_BACK, GL_SHININESS, 5.);
     glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Blue));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Blue));
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., White));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., White));
     glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialf(GL_FRONT, GL_SHININESS, 0.);
+    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+    
+
+    
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Green));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, Array3(1., 0., 2.));
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.);
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 100.);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
+    
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, MulArray3(1., White));
+    glLightfv(GL_LIGHT1, GL_SPECULAR, MulArray3(.7, White));
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
+    
+    glShadeModel(GL_SMOOTH);
+    glEnable( GL_LIGHTING );
+    
+    glutSolidCube( 1 );
+    
+    glDisable(GL_LIGHT1);
+    
+    glEndList();
+    
+    TeaList = glGenLists(1);
+    glNewList(TeaList, GL_COMPILE);
+    glTranslatef(2, 1, 0);
+    
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+    glMaterialf(GL_BACK, GL_SHININESS, 5.);
+    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Green));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Green));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Green));
     glMaterialf(GL_FRONT, GL_SHININESS, 8.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-    glColor3f(1, 0, 0);
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Blue));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    glLightfv(GL_LIGHT2, GL_POSITION, Array3(1., 1., 0.));
+    glLightfv(GL_LIGHT2, GL_AMBIENT, Array3(0., 0., 0.));
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, MulArray3(1., Blue));
+    glLightfv(GL_LIGHT2, GL_SPECULAR, MulArray3(.7, Blue));
+    glLightf(GL_LIGHT2, GL_CONSTANT_ATTENUATION, 1.);
+    glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 0.);
+    glLightf(GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 0.);
     
-    glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., 20., 20.));
     
-    glShadeModel(GL_SMOOTH);
+    //glColor3f(0., 1., 0.);
     
-    
-    
+    glShadeModel(GL_FLAT);
     glEnable( GL_LIGHTING );
-    
-    glEnable(GL_LIGHT0);
-    
-    
-    
-    glutSolidCube( 4 );
-    
+    glutSolidTeapot(.5);
     glEndList();
+    
+    LightZero = glGenLists( 1 );
+    glNewList(LightZero, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(-3., -2., -2.);
+    glColor3f(1., 0., 0.);
+    glutSolidSphere(.25, 10, 10);
+    glPopMatrix();
+    glEndList();
+    
+    LightOne = glGenLists( 1 );
+    glNewList(LightOne, GL_COMPILE);
+    glPushMatrix();
+    glColor3f(1., 0., 0.);
+    glTranslatef(1., 0., 2.);
+    glutSolidSphere(.25, 10, 10);
+    glPopMatrix();
+    glEndList();
+    
+    LightTwo = glGenLists( 1 );
+    glNewList(LightTwo, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(1., 1., -3.);
+    glColor3f(0., 0., 1.);
+    glutSolidSphere(.25, 10, 10);
+    glPopMatrix();
+    glEndList();
+    
+    // create the axes:
+    
+    AxesList = glGenLists( 1 );
+    glNewList( AxesList, GL_COMPILE );
+    glColor3f(1., 1., 1.);
+    glLineWidth( AXES_WIDTH );
+    Axes( 1.5 );
+    glLineWidth( 1. );
+    glEndList( );
    
 }
 
@@ -951,12 +1057,25 @@ Keyboard( unsigned char c, int x, int y )
         case 'O':
             WhichProjection = ORTHO;
             break;
+        
+        case '0':
+            Light0On = ! Light0On;
+            break;
+            
+        case '1':
+            Light1On = ! Light1On;
+            break;
+            
+        case '2':
+            Light2On = ! Light2On;
+            break;
             
         case 'q':
         case 'Q':
         case ESCAPE:
             DoMainMenu( QUIT );	// will not return here
             break;				// happy compiler
+            
             
         default:
             fprintf( stderr, "Don't know what to do with keyboard hit: '%c' (0x%0x)\n", c, c );
@@ -1348,269 +1467,16 @@ DrawPoint( struct point *p )
 }
 
 void
-MjbSphere( float radius, int slices, int stacks )
+SetMaterial( float r, float g, float b,  float shininess )
 {
-    struct point top, bot;		// top, bottom points
-    struct point *p;
-    
-    // set the globals:
-    
-    NumLngs = slices;
-    NumLats = stacks;
-    
-    if( NumLngs < 3 )
-        NumLngs = 3;
-    
-    if( NumLats < 3 )
-        NumLats = 3;
-    
-    
-    // allocate the point data structure:
-    
-    Pts = new struct point[ NumLngs * NumLats ];
-    
-    
-    // fill the Pts structure:
-    
-    for( int ilat = 0; ilat < NumLats; ilat++ )
-    {
-        float lat = -M_PI/2.  +  M_PI * (float)ilat / (float)(NumLats-1);
-        float xz = cos( lat );
-        float y = sin( lat );
-        for( int ilng = 0; ilng < NumLngs; ilng++ )
-        {
-            float lng = -M_PI  +  2. * M_PI * (float)ilng / (float)(NumLngs-1);
-            float x =  xz * cos( lng );
-            float z = -xz * sin( lng );
-            p = PtsPointer( ilat, ilng );
-            p->x  = radius * x;
-            p->y  = radius * y;
-            p->z  = radius * z;
-            p->nx = x;
-            p->ny = y;
-            p->nz = z;
-            
-            if( Distort )
-            {
-                p->s = (( (lng) + M_PI    ) / ( 3.0*M_PI ));
-                p->t = (( (lat) + M_PI/2.2 ) / M_PI );
-            }
-            
-            else
-            {
-                p->s = ( lng + M_PI    ) / ( 2.*M_PI );
-                p->t = ( lat + M_PI/2. ) / M_PI;
-            }
-        }
-    }
-    
-    top.x =  0.;		top.y  = radius;	top.z = 0.;
-    top.nx = 0.;		top.ny = 1.;		top.nz = 0.;
-    top.s  = 0.;		top.t  = 1.;
-    
-    bot.x =  0.;		bot.y  = -radius;	bot.z = 0.;
-    bot.nx = 0.;		bot.ny = -1.;		bot.nz = 0.;
-    bot.s  = 0.;		bot.t  =  0.;
-    
-    
-    // connect the north pole to the latitude NumLats-2:
-    
-    glBegin( GL_QUADS );
-    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-    {
-        p = PtsPointer( NumLats-1, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-2, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-2, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-1, ilng+1 );
-        DrawPoint( p );
-    }
-    glEnd( );
-    
-    // connect the south pole to the latitude 1:
-    
-    glBegin( GL_QUADS );
-    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-    {
-        p = PtsPointer( 0, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( 0, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( 1, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( 1, ilng );
-        DrawPoint( p );
-    }
-    glEnd( );
-    
-    
-    // connect the other 4-sided polygons:
-    
-    glBegin( GL_QUADS );
-    for( int ilat = 2; ilat < NumLats-1; ilat++ )
-    {
-        for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-        {
-            p = PtsPointer( ilat-1, ilng );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat-1, ilng+1 );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat, ilng+1 );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat, ilng );
-            DrawPoint( p );
-        }
-    }
-    glEnd( );
-    
-    delete [ ] Pts;
-    Pts = NULL;
-}
-
-/**
- ** read a BMP file into a Texture:
- **/
-
-unsigned char *
-BmpToTexture( char *filename, int *width, int *height )
-{
-    
-    int s, t, e;		// counters
-    int numextra;		// # extra bytes each line in the file is padded with
-    FILE *fp;
-    unsigned char *texture;
-    int nums, numt;
-    unsigned char *tp;
-    
-    
-    fp = fopen( filename, "rb" );
-    if( fp == NULL )
-    {
-        fprintf( stderr, "Cannot open Bmp file '%s'\n", filename );
-        return NULL;
-    }
-    
-    FileHeader.bfType = ReadShort( fp );
-    
-    
-    // if bfType is not 0x4d42, the file is not a bmp:
-    
-    if( FileHeader.bfType != 0x4d42 )
-    {
-        fprintf( stderr, "Wrong type of file: 0x%0x\n", FileHeader.bfType );
-        fclose( fp );
-        return NULL;
-    }
-    
-    
-    FileHeader.bfSize = ReadInt( fp );
-    FileHeader.bfReserved1 = ReadShort( fp );
-    FileHeader.bfReserved2 = ReadShort( fp );
-    FileHeader.bfOffBits = ReadInt( fp );
-    
-    
-    InfoHeader.biSize = ReadInt( fp );
-    InfoHeader.biWidth = ReadInt( fp );
-    InfoHeader.biHeight = ReadInt( fp );
-    
-    nums = InfoHeader.biWidth;
-    numt = InfoHeader.biHeight;
-    
-    InfoHeader.biPlanes = ReadShort( fp );
-    InfoHeader.biBitCount = ReadShort( fp );
-    InfoHeader.biCompression = ReadInt( fp );
-    InfoHeader.biSizeImage = ReadInt( fp );
-    InfoHeader.biXPelsPerMeter = ReadInt( fp );
-    InfoHeader.biYPelsPerMeter = ReadInt( fp );
-    InfoHeader.biClrUsed = ReadInt( fp );
-    InfoHeader.biClrImportant = ReadInt( fp );
-    
-    
-    // fprintf( stderr, "Image size found: %d x %d\n", ImageWidth, ImageHeight );
-    
-    
-    texture = new unsigned char[ 3 * nums * numt ];
-    if( texture == NULL )
-    {
-        fprintf( stderr, "Cannot allocate the texture array!\b" );
-        return NULL;
-    }
-    
-    
-    // extra padding bytes:
-    
-    numextra =  4*(( (3*InfoHeader.biWidth)+3)/4) - 3*InfoHeader.biWidth;
-    
-    
-    // we do not support compression:
-    
-    if( InfoHeader.biCompression != birgb )
-    {
-        fprintf( stderr, "Wrong type of image compression: %d\n", InfoHeader.biCompression );
-        fclose( fp );
-        return NULL;
-    }
-    
-    
-    
-    rewind( fp );
-    fseek( fp, 14+40, SEEK_SET );
-    
-    if( InfoHeader.biBitCount == 24 )
-    {
-        for( t = 0, tp = texture; t < numt; t++ )
-        {
-            for( s = 0; s < nums; s++, tp += 3 )
-            {
-                *(tp+2) = fgetc( fp );		// b
-                *(tp+1) = fgetc( fp );		// g
-                *(tp+0) = fgetc( fp );		// r
-            }
-            
-            for( e = 0; e < numextra; e++ )
-            {
-                fgetc( fp );
-            }
-        }
-    }
-    
-    fclose( fp );
-    
-    *width = nums;
-    *height = numt;
-    return texture;
-}
-
-
-
-int
-ReadInt( FILE *fp )
-{
-    unsigned char b3, b2, b1, b0;
-    b0 = fgetc( fp );
-    b1 = fgetc( fp );
-    b2 = fgetc( fp );
-    b3 = fgetc( fp );
-    return ( b3 << 24 )  |  ( b2 << 16 )  |  ( b1 << 8 )  |  b0;
-}
-
-
-short
-ReadShort( FILE *fp )
-{
-    unsigned char b1, b0;
-    b0 = fgetc( fp );
-    b1 = fgetc( fp );
-    return ( b1 << 8 )  |  b0;
+    glMaterialfv( GL_BACK, GL_EMISSION, Array3( 0., 0., 0. ) );
+    glMaterialfv( GL_BACK, GL_AMBIENT, MulArray3( .4f, White ) );
+    glMaterialfv( GL_BACK, GL_DIFFUSE, MulArray3( 1., White ) );
+    glMaterialfv( GL_BACK, GL_SPECULAR, Array3( 0., 0., 0. ) );
+    glMaterialf (  GL_BACK, GL_SHININESS, 2.f );
+    glMaterialfv( GL_FRONT, GL_EMISSION, Array3( 0., 0., 0. ) );
+    glMaterialfv( GL_FRONT, GL_AMBIENT, Array3( r, g, b ) );
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, Array3( r, g, b ) );
+    glMaterialfv( GL_FRONT, GL_SPECULAR, MulArray3( .8f, White ) );
+    glMaterialf ( GL_FRONT, GL_SHININESS, shininess );
 }
