@@ -133,6 +133,9 @@ enum ButtonVals
 };
 
 float   White[] = {1., 1., 1., 1.};
+float   Red[] = {1., 0., 0., 1.};
+float   Green[] = {0., 1., 0., 1.};
+float   Blue[] = {0., 0., 1., 1.};
 
 // utility to create an array from 3 seperate values:
 
@@ -854,21 +857,34 @@ InitLists( )
     
     glNewList(TorusList, GL_COMPILE);
     
-        glTranslatef(3., 3., -2.);
+    glTranslatef(3., 3., -2.);
     
-        glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+    glMaterialf(GL_BACK, GL_SHININESS, 5.);
+    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
     
-        glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., 20., 20.));
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Red));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Red));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialf(GL_FRONT, GL_SHININESS, 8.);
+    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-        glShadeModel(GL_SMOOTH);
     
-        glEnable( GL_LIGHTING );
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
     
-        glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., 20., 20.));
     
-        glColor3f(1, 0, 0);
+    glShadeModel(GL_FLAT);
     
-        glutSolidTorus(2, 5, 100, 100);
+    glEnable( GL_LIGHTING );
+    
+    glEnable(GL_LIGHT0);
+    
+    glColor3f(1, 0, 0);
+    
+    glutSolidTorus(1, 2, 100, 100);
     
     glEndList();
     
@@ -879,7 +895,21 @@ InitLists( )
     
     glNewList(CubeList, GL_COMPILE);
     
-    glTranslatef(-3., -3., 2);
+    glTranslatef(-5., -5., 5);
+    
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+    glMaterialf(GL_BACK, GL_SHININESS, 5.);
+    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Blue));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Blue));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialf(GL_FRONT, GL_SHININESS, 8.);
+    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glColor3f(1, 0, 0);
     
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
     
@@ -887,13 +917,15 @@ InitLists( )
     
     glShadeModel(GL_SMOOTH);
     
+    
+    
     glEnable( GL_LIGHTING );
     
     glEnable(GL_LIGHT0);
     
-    glColor3f(1, 0, 0);
     
-    glutSolidCube( 2 );
+    
+    glutSolidCube( 4 );
     
     glEndList();
    
