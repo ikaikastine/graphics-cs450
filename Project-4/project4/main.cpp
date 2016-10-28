@@ -916,7 +916,7 @@ InitLists( )
     glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Red));
     glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Red));
     glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
-    glMaterialf(GL_FRONT, GL_SHININESS, 8.);
+    glMaterialf(GL_FRONT, GL_SHININESS, 20.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
     /*
@@ -1019,7 +1019,7 @@ InitLists( )
      
      */
     
-    glShadeModel(GL_FLAT);
+    glShadeModel(GL_SMOOTH);
     
     glEnable( GL_LIGHTING );
     
