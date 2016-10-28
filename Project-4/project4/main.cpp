@@ -167,8 +167,8 @@ MulArray3( float factor, float array0[3])
 
 // window background color (rgba):
 
-//const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
-const GLfloat BACKCOLOR[ ] = { 1., 1., 1., 1. };
+const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
+//const GLfloat BACKCOLOR[ ] = { 1., 1., 1., 1. };
 
 
 // line width for the axes:
@@ -563,16 +563,14 @@ Display( )
     
     glPushMatrix();
     float x = 2.;
-    glRotatef(360*Time, 0., .2, 0.);
     glTranslatef(x, 0., 0.);
+    glRotatef(360*Time, 0., .2, 0.);
+    
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
     glLightfv(GL_LIGHT0, GL_POSITION, Array3(x, 0, 0.));
     glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
     glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
-    
-    
     glTranslatef(-2., 0., 0.);
     glCallList( LightZero );
     glPopMatrix();
@@ -581,9 +579,15 @@ Display( )
     glCallList( TorusList );
     glCallList( CubeList );
     glPopMatrix();
+    
     glPushMatrix();
+    glRotatef(360*Time, 0., 0., 1.);
+    glTranslatef(0., -1., 1.);
+    
     glCallList( TeaList );
     glPopMatrix();
+    
+    glPushMatrix();
     glCallList( LightOne );
     glCallList( LightTwo );
     glPopMatrix();
@@ -1040,11 +1044,11 @@ InitLists( )
     LightOne = glGenLists( 1 );
     glNewList(LightOne, GL_COMPILE);
     glPushMatrix();
-    glTranslatef(1., 0., 2.);
+    glTranslatef(0., 0., 2.);
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
-    glLightfv(GL_LIGHT1, GL_POSITION, Array3(1., 0., 2.));
+    glLightfv(GL_LIGHT1, GL_POSITION, Array3(0., 0., 2.));
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
     glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 4.);
     glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.);
@@ -1065,6 +1069,8 @@ InitLists( )
     
     LightTwo = glGenLists( 1 );
     glNewList(LightTwo, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(1., 1., 0.);
     
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Blue));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -1077,12 +1083,6 @@ InitLists( )
     glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 0.);
     glLightf(GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 0.);
     
-    glColor3f(1., 1., 1.);
-    glNormal3f(1., 1., 1.);
-
-    glPushMatrix();
-    glTranslatef(1., 1., 0.);
-    glColor3f(1., 1., 1.);
     glutSolidSphere(.25, 10, 10);
     glPopMatrix();
     glEndList();
