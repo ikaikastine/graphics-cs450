@@ -136,6 +136,7 @@ float   White[] = {1., 1., 1., 1.};
 float   Red[] = {1., 0., 0., 1.};
 float   Green[] = {0., 1., 0., 1.};
 float   Blue[] = {0., 0., 1., 1.};
+float   Cyan[] = {0., 1., 1., 1.};
 
 // utility to create an array from 3 seperate values:
 
@@ -166,8 +167,8 @@ MulArray3( float factor, float array0[3])
 
 // window background color (rgba):
 
-const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
-//const GLfloat BACKCOLOR[ ] = { 1., 1., 1., 1. };
+//const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
+const GLfloat BACKCOLOR[ ] = { 1., 1., 1., 1. };
 
 
 // line width for the axes:
@@ -300,7 +301,7 @@ float	Xrot, Yrot;				// rotation angles in degrees
 int     BLADE_ANGLE;
 float   Time;
 int     MS_IN_THE_ANIMATION_CYCLE;
-int     MS_PER_CYCLE = 10;
+int     MS_PER_CYCLE = 15000;
 GLuint  TopBlades;
 GLuint  RearBlades;
 GLuint  RandomDraw;
@@ -544,7 +545,7 @@ Display( )
     
  
     
-    // draw the helicopter
+    // draw the shapes and colors
 
     
     if (Light0On)
@@ -561,10 +562,28 @@ Display( )
         glDisable(GL_LIGHT2);
     
     glPushMatrix();
+    float x = 2.;
+    glRotatef(360*Time, 0., .2, 0.);
+    glTranslatef(x, 0., 0.);
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    
+    glLightfv(GL_LIGHT0, GL_POSITION, Array3(x, 0, 0.));
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
+    
+    
+    glTranslatef(-2., 0., 0.);
+    glCallList( LightZero );
+    glPopMatrix();
+    
+    glPushMatrix();
     glCallList( TorusList );
     glCallList( CubeList );
+    glPopMatrix();
+    glPushMatrix();
     glCallList( TeaList );
-    glCallList( LightZero );
+    glPopMatrix();
     glCallList( LightOne );
     glCallList( LightTwo );
     glPopMatrix();
@@ -880,6 +899,7 @@ InitLists( )
     TorusList = glGenLists( 1 );
     
     glNewList(TorusList, GL_COMPILE);
+    glPushMatrix();
     
     glTranslatef(1., 1., -2.);
     
@@ -895,13 +915,15 @@ InitLists( )
     glMaterialf(GL_FRONT, GL_SHININESS, 8.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-    
+    /*
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
     glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., -2., 0.));
     glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
     glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
+    
+     */
     
     glShadeModel(GL_FLAT);
     
@@ -913,7 +935,7 @@ InitLists( )
     glutSolidTorus(.5, 1, 100, 100);
     
     glDisable(GL_LIGHT0);
-    
+    glPopMatrix();
     glEndList();
     
     
@@ -922,8 +944,8 @@ InitLists( )
     CubeList = glGenLists( 1 );
     
     glNewList(CubeList, GL_COMPILE);
-    
-    glTranslatef(-2., -2., 2);
+    glPushMatrix();
+    glTranslatef(-1., -1., 0);
     
     glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
     glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
@@ -931,19 +953,19 @@ InitLists( )
     glMaterialf(GL_BACK, GL_SHININESS, 5.);
     glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., White));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., White));
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Blue));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Blue));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Blue));
     glMaterialf(GL_FRONT, GL_SHININESS, 0.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
 
-    
+    /*
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Green));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
     glLightfv(GL_LIGHT1, GL_POSITION, Array3(1., 0., 2.));
-    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(-2., -2., 0.));
     glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.);
     glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 100.);
     glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
@@ -954,30 +976,95 @@ InitLists( )
     glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
     glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
     
+    */
+    
     glShadeModel(GL_SMOOTH);
     glEnable( GL_LIGHTING );
     
     glutSolidCube( 1 );
     
     glDisable(GL_LIGHT1);
-    
+    glPopMatrix();
     glEndList();
     
     TeaList = glGenLists(1);
     glNewList(TeaList, GL_COMPILE);
-    glTranslatef(2, 1, 0);
+    glPushMatrix();
     
-    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
-    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glTranslatef(1., 0., 0.);
+    
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, Cyan));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., Cyan));
     glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
     glMaterialf(GL_BACK, GL_SHININESS, 5.);
     glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Green));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Green));
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Green));
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Cyan));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Cyan));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Cyan));
     glMaterialf(GL_FRONT, GL_SHININESS, 8.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+    
+    /*
+     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
+     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+     
+     glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., -2., 0.));
+     glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
+     glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
+     
+     */
+    
+    glShadeModel(GL_FLAT);
+    
+    glEnable( GL_LIGHTING );
+    
+    //glutSolidTorus(.5, 1, 100, 100);
+    glutSolidTeapot( .5 );
+    glDisable(GL_LIGHT0);
+    glPopMatrix();
+    glEndList();
+    
+    LightZero = glGenLists( 1 );
+    glNewList(LightZero, GL_COMPILE);
+    
+    
+    
+    glPushMatrix();
+    glTranslatef(-3., -2., 0.);
+    glColor3f(1., 1., 1.);
+    glutSolidSphere(.25, 10, 10);
+    glPopMatrix();
+    glEndList();
+    
+    LightOne = glGenLists( 1 );
+    glNewList(LightOne, GL_COMPILE);
+    glPushMatrix();
+    glTranslatef(1., 0., 2.);
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, Array3(1., 0., 2.));
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 4.);
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
+    
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, MulArray3(1., White));
+    glLightfv(GL_LIGHT1, GL_SPECULAR, MulArray3(.7, White));
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
+    
+    
+    glColor3f(1., 0., 0.);
+    
+    glutSolidSphere(.25, 10, 10);
+    glPopMatrix();
+    glEndList();
+    
+    LightTwo = glGenLists( 1 );
+    glNewList(LightTwo, GL_COMPILE);
     
     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Blue));
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -990,43 +1077,18 @@ InitLists( )
     glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 0.);
     glLightf(GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 0.);
     
-    
-    //glColor3f(0., 1., 0.);
-    
-    glShadeModel(GL_FLAT);
-    glEnable( GL_LIGHTING );
-    glutSolidTeapot(.5);
-    glEndList();
-    
-    LightZero = glGenLists( 1 );
-    glNewList(LightZero, GL_COMPILE);
+    glColor3f(1., 1., 1.);
+    glNormal3f(1., 1., 1.);
+
     glPushMatrix();
-    glTranslatef(-3., -2., -2.);
-    glColor3f(1., 0., 0.);
-    glutSolidSphere(.25, 10, 10);
-    glPopMatrix();
-    glEndList();
-    
-    LightOne = glGenLists( 1 );
-    glNewList(LightOne, GL_COMPILE);
-    glPushMatrix();
-    glColor3f(1., 0., 0.);
-    glTranslatef(1., 0., 2.);
-    glutSolidSphere(.25, 10, 10);
-    glPopMatrix();
-    glEndList();
-    
-    LightTwo = glGenLists( 1 );
-    glNewList(LightTwo, GL_COMPILE);
-    glPushMatrix();
-    glTranslatef(1., 1., -3.);
-    glColor3f(0., 0., 1.);
+    glTranslatef(1., 1., 0.);
+    glColor3f(1., 1., 1.);
     glutSolidSphere(.25, 10, 10);
     glPopMatrix();
     glEndList();
     
     // create the axes:
-    
+    /*
     AxesList = glGenLists( 1 );
     glNewList( AxesList, GL_COMPILE );
     glColor3f(1., 1., 1.);
@@ -1034,7 +1096,7 @@ InitLists( )
     Axes( 1.5 );
     glLineWidth( 1. );
     glEndList( );
-   
+    */
 }
 
 
