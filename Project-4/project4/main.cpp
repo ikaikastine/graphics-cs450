@@ -919,16 +919,6 @@ InitLists( )
     glMaterialf(GL_FRONT, GL_SHININESS, 20.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-    /*
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
-    glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., -2., 0.));
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
-    
-     */
-    
     glShadeModel(GL_FLAT);
     
     glEnable( GL_LIGHTING );
@@ -963,25 +953,6 @@ InitLists( )
     glMaterialf(GL_FRONT, GL_SHININESS, 0.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-
-    /*
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Green));
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
-    glLightfv(GL_LIGHT1, GL_POSITION, Array3(1., 0., 2.));
-    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(-2., -2., 0.));
-    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.);
-    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 100.);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
-    
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, MulArray3(1., White));
-    glLightfv(GL_LIGHT1, GL_SPECULAR, MulArray3(.7, White));
-    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.);
-    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
-    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
-    
-    */
-    
     glShadeModel(GL_SMOOTH);
     glEnable( GL_LIGHTING );
     
@@ -1009,21 +980,10 @@ InitLists( )
     glMaterialf(GL_FRONT, GL_SHININESS, 8.);
     glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
     
-    /*
-     glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
-     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-     
-     glLightfv(GL_LIGHT0, GL_POSITION, Array3(3., -2., 0.));
-     glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
-     glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
-     
-     */
-    
     glShadeModel(GL_SMOOTH);
     
     glEnable( GL_LIGHTING );
     
-    //glutSolidTorus(.5, 1, 100, 100);
     glutSolidTeapot( .5 );
     glDisable(GL_LIGHT0);
     glPopMatrix();
