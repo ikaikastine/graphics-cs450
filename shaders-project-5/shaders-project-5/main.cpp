@@ -311,17 +311,12 @@ int     WhichView;
 int     WhichTex;
 GLuint  tex0, tex1, textureBind;
 int     textureView;
-GLuint  DistortList;
-GLuint  TorusList;
-GLuint  CubeList;
-GLuint  TeaList;
+GLuint  SphereList;
 
 bool    Light0On;
 bool    Light1On;
 bool    Light2On;
-GLuint  LightZero;
-GLuint  LightOne;
-GLuint  LightTwo;
+
 
 GLSLProgram	*Pattern;
 
@@ -356,7 +351,7 @@ void	HsvRgb( float[3], float [3] );
 void    Cross( float[3], float[3], float[3] );
 float   Unit( float[3], float[3] );
 
-void    SetMaterial(float, float, float, float);
+void    MjbSphere( float, int, int );
 
 // main program:
 
@@ -369,7 +364,7 @@ main( int argc, char *argv[ ] )
     
     glutInit( &argc, argv );
     
-    
+    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE);
     // setup all the graphics stuff:
     
     InitGraphics( );
@@ -550,52 +545,26 @@ Display( )
  
     
     // draw the shapes and colors
-
-    
-    if (Light0On)
-        glEnable(GL_LIGHT0);
-    else
-        glDisable(GL_LIGHT0);
-    if (Light1On)
-        glEnable(GL_LIGHT1);
-    else
-        glDisable(GL_LIGHT1);
-    if (Light2On)
-        glEnable(GL_LIGHT2);
-    else
-        glDisable(GL_LIGHT2);
-    
     glPushMatrix();
-    float x = 2.;
-    glTranslatef(x, 0., 0.);
-    glRotatef(360*Time, 0., .2, 0.);
+    float  S0, T0;
+    float  Ds,  Dt;
+    Ds = .1*(.5+.5*sin(2.*M_PI*Time) );
+    float  V0, V1, V2;
+    float  ColorR, ColorG, ColorB;
+    Pattern->Use( );
+    Pattern->SetUniformVariable( "uS0", S0);
+    Pattern->SetUniformVariable( "uT0", T0 );
+    Pattern->SetUniformVariable( "uDs", Ds);
+    Pattern->SetUniformVariable( "uDt",  Dt );
+    Pattern->SetUniformVariable( "uColor",  ColorR,  ColorG,  ColorB );
+    Pattern->SetUniformVariable( "uTime", Time);
+    //Pattern->SetUniformVariable( "Ds", .1*(.5+.5*sin(2.*M_PI*Time) ) );
     
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.5f, White));
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    glLightfv(GL_LIGHT0, GL_POSITION, Array3(x, 0, 0.));
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, Green);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, Green);
-    glTranslatef(-2., 0., 0.);
-    glCallList( LightZero );
+    glCallList( SphereList );
+    
+    Pattern->Use( 0 );
+    
     glPopMatrix();
-    
-    glPushMatrix();
-    glCallList( TorusList );
-    glCallList( CubeList );
-    glPopMatrix();
-    
-    glPushMatrix();
-    glRotatef(360*Time, 0., 0., 1.);
-    glTranslatef(0., -1., 1.);
-    
-    glCallList( TeaList );
-    glPopMatrix();
-    
-    glPushMatrix();
-    glCallList( LightOne );
-    glCallList( LightTwo );
-    glPopMatrix();
-    
     
     // swap the double-buffered framebuffers:
     
@@ -890,10 +859,6 @@ InitGraphics( )
 #endif
     
     // do this *after* opening the window and init'ing glew:
-    
-    char    *patternVert = (char *) "pattern.vert";
-    char    *patternFrag = (char *) "pattern.frag";
-
 
     
     Pattern = new GLSLProgram( );
@@ -926,150 +891,12 @@ InitLists( )
     glutSetWindow( MainWindow );
     
     // Setup Torus List
-    TorusList = glGenLists( 1 );
+    SphereList = glGenLists( 1 );
     
-    glNewList(TorusList, GL_COMPILE);
+    glNewList( SphereList, GL_COMPILE );
     glPushMatrix();
     
-    glTranslatef(1., 1., -2.);
-    
-    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
-    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
-    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
-    glMaterialf(GL_BACK, GL_SHININESS, 5.);
-    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Red));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Red));
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
-    glMaterialf(GL_FRONT, GL_SHININESS, 20.);
-    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glShadeModel(GL_FLAT);
-    
-    glEnable( GL_LIGHTING );
-    
-    
-    //glColor3f(1, 0, 0);
-    
-    glutSolidTorus(.5, 1, 100, 100);
-    
-    glDisable(GL_LIGHT0);
-    glPopMatrix();
-    glEndList();
-    
-    
-    // Setup Cube List
-    
-    CubeList = glGenLists( 1 );
-    
-    glNewList(CubeList, GL_COMPILE);
-    glPushMatrix();
-    glTranslatef(-1., -1., 0);
-    
-    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
-    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
-    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
-    glMaterialf(GL_BACK, GL_SHININESS, 5.);
-    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Blue));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Blue));
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Blue));
-    glMaterialf(GL_FRONT, GL_SHININESS, 0.);
-    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glShadeModel(GL_SMOOTH);
-    glEnable( GL_LIGHTING );
-    
-    glutSolidCube( 1 );
-    
-    glDisable(GL_LIGHT1);
-    glPopMatrix();
-    glEndList();
-    
-    TeaList = glGenLists(1);
-    glNewList(TeaList, GL_COMPILE);
-    glPushMatrix();
-    
-    glTranslatef(1., 0., 0.);
-    
-    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, Cyan));
-    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., Cyan));
-    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
-    glMaterialf(GL_BACK, GL_SHININESS, 5.);
-    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Cyan));
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Cyan));
-    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, Cyan));
-    glMaterialf(GL_FRONT, GL_SHININESS, 8.);
-    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
-    
-    glShadeModel(GL_SMOOTH);
-    
-    glEnable( GL_LIGHTING );
-    
-    glutSolidTeapot( .5 );
-    glDisable(GL_LIGHT0);
-    glPopMatrix();
-    glEndList();
-    
-    LightZero = glGenLists( 1 );
-    glNewList(LightZero, GL_COMPILE);
-    
-    
-    
-    glPushMatrix();
-    glTranslatef(-3., -2., 0.);
-    glColor3f(1., 1., 1.);
-    glutSolidSphere(.25, 10, 10);
-    glPopMatrix();
-    glEndList();
-    
-    LightOne = glGenLists( 1 );
-    glNewList(LightOne, GL_COMPILE);
-    glPushMatrix();
-    glTranslatef(0., 0., 2.);
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
-    glLightfv(GL_LIGHT1, GL_POSITION, Array3(0., 0., 2.));
-    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
-    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 4.);
-    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
-    
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, MulArray3(1., White));
-    glLightfv(GL_LIGHT1, GL_SPECULAR, MulArray3(.7, White));
-    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.);
-    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
-    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
-    
-    
-    glColor3f(1., 0., 0.);
-    
-    glutSolidSphere(.25, 10, 10);
-    glPopMatrix();
-    glEndList();
-    
-    LightTwo = glGenLists( 1 );
-    glNewList(LightTwo, GL_COMPILE);
-    glPushMatrix();
-    glTranslatef(1., 1., 0.);
-    
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, Blue));
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
-    glLightfv(GL_LIGHT2, GL_POSITION, Array3(1., 1., 0.));
-    glLightfv(GL_LIGHT2, GL_AMBIENT, Array3(0., 0., 0.));
-    glLightfv(GL_LIGHT2, GL_DIFFUSE, MulArray3(1., Blue));
-    glLightfv(GL_LIGHT2, GL_SPECULAR, MulArray3(.7, Blue));
-    glLightf(GL_LIGHT2, GL_CONSTANT_ATTENUATION, 1.);
-    glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 0.);
-    glLightf(GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 0.);
-    
-    glutSolidSphere(.25, 10, 10);
+    MjbSphere(2., 100, 100);
     glPopMatrix();
     glEndList();
     
@@ -1515,16 +1342,134 @@ DrawPoint( struct point *p )
 }
 
 void
-SetMaterial( float r, float g, float b,  float shininess )
+MjbSphere( float radius, int slices, int stacks )
 {
-    glMaterialfv( GL_BACK, GL_EMISSION, Array3( 0., 0., 0. ) );
-    glMaterialfv( GL_BACK, GL_AMBIENT, MulArray3( .4f, White ) );
-    glMaterialfv( GL_BACK, GL_DIFFUSE, MulArray3( 1., White ) );
-    glMaterialfv( GL_BACK, GL_SPECULAR, Array3( 0., 0., 0. ) );
-    glMaterialf (  GL_BACK, GL_SHININESS, 2.f );
-    glMaterialfv( GL_FRONT, GL_EMISSION, Array3( 0., 0., 0. ) );
-    glMaterialfv( GL_FRONT, GL_AMBIENT, Array3( r, g, b ) );
-    glMaterialfv( GL_FRONT, GL_DIFFUSE, Array3( r, g, b ) );
-    glMaterialfv( GL_FRONT, GL_SPECULAR, MulArray3( .8f, White ) );
-    glMaterialf ( GL_FRONT, GL_SHININESS, shininess );
+    struct point top, bot;		// top, bottom points
+    struct point *p;
+    
+    // set the globals:
+    
+    NumLngs = slices;
+    NumLats = stacks;
+    
+    if( NumLngs < 3 )
+        NumLngs = 3;
+    
+    if( NumLats < 3 )
+        NumLats = 3;
+    
+    
+    // allocate the point data structure:
+    
+    Pts = new struct point[ NumLngs * NumLats ];
+    
+    
+    // fill the Pts structure:
+    
+    for( int ilat = 0; ilat < NumLats; ilat++ )
+    {
+        float lat = -M_PI/2.  +  M_PI * (float)ilat / (float)(NumLats-1);
+        float xz = cos( lat );
+        float y = sin( lat );
+        for( int ilng = 0; ilng < NumLngs; ilng++ )
+        {
+            float lng = -M_PI  +  2. * M_PI * (float)ilng / (float)(NumLngs-1);
+            float x =  xz * cos( lng );
+            float z = -xz * sin( lng );
+            p = PtsPointer( ilat, ilng );
+            p->x  = radius * x;
+            p->y  = radius * y;
+            p->z  = radius * z;
+            p->nx = x;
+            p->ny = y;
+            p->nz = z;
+            
+            if( Distort )
+            {
+                p->s = (( (lng) + M_PI    ) / ( 3.0*M_PI ));
+                p->t = (( (lat) + M_PI/2.2 ) / M_PI );
+            }
+            
+            else
+            {
+                p->s = ( lng + M_PI    ) / ( 2.*M_PI );
+                p->t = ( lat + M_PI/2. ) / M_PI;
+            }
+        }
+    }
+    
+    top.x =  0.;		top.y  = radius;	top.z = 0.;
+    top.nx = 0.;		top.ny = 1.;		top.nz = 0.;
+    top.s  = 0.;		top.t  = 1.;
+    
+    bot.x =  0.;		bot.y  = -radius;	bot.z = 0.;
+    bot.nx = 0.;		bot.ny = -1.;		bot.nz = 0.;
+    bot.s  = 0.;		bot.t  =  0.;
+    
+    
+    // connect the north pole to the latitude NumLats-2:
+    
+    glBegin( GL_QUADS );
+    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
+    {
+        p = PtsPointer( NumLats-1, ilng );
+        DrawPoint( p );
+        
+        p = PtsPointer( NumLats-2, ilng );
+        DrawPoint( p );
+        
+        p = PtsPointer( NumLats-2, ilng+1 );
+        DrawPoint( p );
+        
+        p = PtsPointer( NumLats-1, ilng+1 );
+        DrawPoint( p );
+    }
+    glEnd( );
+    
+    // connect the south pole to the latitude 1:
+    
+    glBegin( GL_QUADS );
+    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
+    {
+        p = PtsPointer( 0, ilng );
+        DrawPoint( p );
+        
+        p = PtsPointer( 0, ilng+1 );
+        DrawPoint( p );
+        
+        p = PtsPointer( 1, ilng+1 );
+        DrawPoint( p );
+        
+        p = PtsPointer( 1, ilng );
+        DrawPoint( p );
+    }
+    glEnd( );
+    
+    
+    // connect the other 4-sided polygons:
+    
+    glBegin( GL_QUADS );
+    for( int ilat = 2; ilat < NumLats-1; ilat++ )
+    {
+        for( int ilng = 0; ilng < NumLngs-1; ilng++ )
+        {
+            p = PtsPointer( ilat-1, ilng );
+            DrawPoint( p );
+            
+            p = PtsPointer( ilat-1, ilng+1 );
+            DrawPoint( p );
+            
+            p = PtsPointer( ilat, ilng+1 );
+            DrawPoint( p );
+            
+            p = PtsPointer( ilat, ilng );
+            DrawPoint( p );
+        }
+    }
+    glEnd( );
+    
+    delete [ ] Pts;
+    Pts = NULL;
 }
+
+
