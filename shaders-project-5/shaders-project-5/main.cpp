@@ -313,9 +313,8 @@ GLuint  tex0, tex1, textureBind;
 int     textureView;
 GLuint  SphereList;
 
-bool    Light0On;
-bool    Light1On;
-bool    Light2On;
+bool    vertAnimate;
+bool    fragAnimate;
 
 
 GLSLProgram	*Pattern;
@@ -364,7 +363,6 @@ main( int argc, char *argv[ ] )
     
     glutInit( &argc, argv );
     
-    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE);
     // setup all the graphics stuff:
     
     InitGraphics( );
@@ -548,7 +546,12 @@ Display( )
     glPushMatrix();
     float  S0, T0;
     float  Ds,  Dt;
-    Ds = .1*(.5+.5*sin(2.*M_PI*Time) );
+    Ds = 1;
+    if (vertAnimate == 1) {
+        //Ds = .1*(.5+.5*sin(2.*M_PI*Time) );
+    } else {
+        Ds = 1;
+    }
     float  V0, V1, V2;
     float  ColorR, ColorG, ColorB;
     Pattern->Use( );
@@ -558,7 +561,7 @@ Display( )
     Pattern->SetUniformVariable( "uDt",  Dt );
     Pattern->SetUniformVariable( "uColor",  ColorR,  ColorG,  ColorB );
     Pattern->SetUniformVariable( "uTime", Time);
-    //Pattern->SetUniformVariable( "Ds", .1*(.5+.5*sin(2.*M_PI*Time) ) );
+    Pattern->SetUniformVariable( "Animate", vertAnimate);
     
     glCallList( SphereList );
     
@@ -933,16 +936,13 @@ Keyboard( unsigned char c, int x, int y )
             WhichProjection = ORTHO;
             break;
         
-        case '0':
-            Light0On = ! Light0On;
+        case 'v':
+        case 'V':
+            vertAnimate = ! vertAnimate;
             break;
             
-        case '1':
-            Light1On = ! Light1On;
-            break;
-            
-        case '2':
-            Light2On = ! Light2On;
+        case 'F':
+            fragAnimate = ! fragAnimate;
             break;
             
         case 'q':

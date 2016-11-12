@@ -26,7 +26,7 @@ main( )
 {
     vec3 myColor = uColor;
     
-    if( uS0-uSize/2. <= vST.s  &&  vST.s <= uS0+uSize/2.  && uT0-uSize/2. <= vST.t   &&   vST.t <= uT0+uSize/2. ) {
+    if( uS0-uSize/2. < vST.s  &&  vST.s < uS0+uSize/2.  && uT0-uSize/2. < vST.t   &&   vST.t < uT0+uSize/2. ) {
         myColor = vec3( 1., 0., 0. );
     }
     
