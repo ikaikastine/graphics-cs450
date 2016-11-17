@@ -50,7 +50,7 @@
 
 // title of these windows:
 
-const char *WINDOWTITLE = { "Project 2 -- Kevin Stine" };
+const char *WINDOWTITLE = { "Project 6 -- Kevin Stine" };
 const char *GLUITITLE   = { "User Interface Window" };
 
 // blade parameters:
@@ -186,36 +186,6 @@ const GLfloat Colors[ ][3] =
     { 0., 0., 0. },		// black
 };
 
-// Struct for setting up a sphere
-
-bool	Distort;		// global -- true means to distort the texture
-
-struct point {
-    float x, y, z;		// coordinates
-    float nx, ny, nz;	// surface normal
-    float s, t;		// texture coords
-};
-
-int		NumLngs, NumLats;
-struct point *	Pts;
-
-struct point *
-PtsPointer( int lat, int lng )
-{
-    if( lat < 0 )	lat += (NumLats-1);
-    if( lng < 0 )	lng += (NumLngs-1);
-    if( lat > NumLats-1 )	lat -= (NumLats-1);
-    if( lng > NumLngs-1 )	lng -= (NumLngs-1);
-    return &Pts[ NumLngs*lat + lng ];
-}
-
-// bmp to texture
-
-
-int	ReadInt( FILE * );
-short	ReadShort( FILE * );
-
-
 struct bmfh
 {
     short bfType;
@@ -241,6 +211,19 @@ struct bmih
 } InfoHeader;
 
 const int birgb = { 0 };
+
+
+struct Point
+{
+    //float x0, y0, z0;       // initial coordinates
+    float x,  y,  z;        // animated coordinates
+};
+
+struct Curve
+{
+    float r, g, b;
+    Point p0, p1, p2, p3;
+};
 
 // fog parameters:
 
@@ -268,7 +251,7 @@ float	Xrot, Yrot;				// rotation angles in degrees
 int     BLADE_ANGLE;
 float   Time;
 int     MS_IN_THE_ANIMATION_CYCLE;
-int     MS_PER_CYCLE = 10;
+int     MS_PER_CYCLE = 10000;
 GLuint  TopBlades;
 GLuint  RearBlades;
 GLuint  RandomDraw;
@@ -277,7 +260,10 @@ int     WhichTex;
 GLuint  tex0, tex1, textureBind;
 int     textureView;
 GLuint  DistortList;
+int     DrawControlPoints;
+int     DrawControlLines;
 
+int     NUMPOINTS = 1000;
 
 // function prototypes:
 
@@ -309,9 +295,55 @@ void	HsvRgb( float[3], float [3] );
 void    Cross( float[3], float[3], float[3] );
 float   Unit( float[3], float[3] );
 
-void    MjbSphere( float, int, int );
-//unsigned char * BmpToTexture( char, int, int );
-unsigned char *   BmpToTexture(char *, int *, int *);
+void    RotateX( Point, float, float, float, float );
+void    RotateY( Point, float, float, float, float );
+void    RotateZ( Point, float, float, float, float );
+
+
+void DrawCurve( struct Curve *curve )
+{
+    glLineWidth( 3. );
+    glColor3f( curve->r, curve->g, curve->b );
+    struct Point p0 = curve->p0;
+    struct Point p1 = curve->p1;
+    struct Point p2 = curve->p2;
+    struct Point p3 = curve->p3;
+    glBegin( GL_LINE_STRIP );
+    for( int it = 0; it <= NUMPOINTS; it++ )
+    {
+        float t = (float)it / (float)NUMPOINTS;
+        float omt = 1.f - t;
+        float x = omt*omt*omt*p0.x + 3.f*t*omt*omt*p1.x + 3.f*t*t*omt*p2.x + t*t*t*p3.x;
+        float y = omt*omt*omt*p0.y + 3.f*t*omt*omt*p1.y + 3.f*t*t*omt*p2.y + t*t*t*p3.y;
+        float z = omt*omt*omt*p0.z + 3.f*t*omt*omt*p1.z + 3.f*t*t*omt*p2.z + t*t*t*p3.z;
+        glVertex3f( x, y, z );
+    }
+    glEnd( );
+    
+    glColor3f( 1., 1., 1. );
+    
+    // Draw control points
+    if(DrawControlPoints){
+        glPointSize( 5. );
+        glBegin( GL_POINTS );
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+        glVertex3f(p2.x, p2.y, p2.z);
+        glVertex3f(p3.x, p3.y, p3.z);
+        glEnd( );
+    }
+    
+    // Draw control lines
+    if(DrawControlLines){
+        glLineWidth( 1. );
+        glBegin( GL_LINE_STRIP );
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+        glVertex3f(p2.x, p2.y, p2.z);
+        glVertex3f(p3.x, p3.y, p3.z);
+        glEnd( );
+    }
+}
 
 // main program:
 
@@ -502,27 +534,48 @@ Display( )
     
     glEnable( GL_NORMALIZE );
     
-    
-    
-    glEnable(GL_TEXTURE_2D);
-    // draw the helicopter
-    
-    glMatrixMode( GL_TEXTURE );
-    glLoadIdentity();
-    if (WhichTex == REGULAR)
-        glBindTexture(GL_TEXTURE_2D, tex0);
-    else if (WhichTex == DISTORTED) {
-        glRotatef( 360.*Time, 0., 1., 0. );
-        glBindTexture(GL_TEXTURE_2D, tex0);
-        Distort = true;
-        glCallList( DistortList );
+    // Draw the flower
+    glPushMatrix();
+    int numcurves = 25;
+    for(int c = 0; c < numcurves; c++){
+        float angle = 360. * c / numcurves;
+        float move = (sin(Time*2*M_PI)+1)/2.5;
+        struct Curve curve;
+        struct Point p0 = {0., 0., 0.};
+        struct Point p1 = {static_cast<float>(cos(angle)*2), 1., static_cast<float>(sin(angle)*2)};
+        struct Point p2 = {static_cast<float>(cos(angle/3)*move*2), static_cast<float>(2.-move*2), static_cast<float>(sin(angle*3)*move*2)};
+        struct Point p3 = {static_cast<float>(cos(angle/2)*move*3), static_cast<float>(3.-move*3), static_cast<float>(sin(angle/2)*move*3)};
+        curve.p0 = p0;
+        curve.p1 = p1;
+        curve.p2 = p2;
+        curve.p3 = p3;
+        curve.r = 1-p3.y/3;
+        curve.g = p3.y/3;
+        curve.b = 0.;
+        DrawCurve(&curve);
     }
-    else
-        glBindTexture(GL_TEXTURE_2D, tex1);
+    glPopMatrix();
     
-    glCallList( BoxList );
-    
-    glDisable(GL_TEXTURE_2D);
+    // Draw the stem
+    glPushMatrix();
+    numcurves = 5;
+    for(int c = 0; c < numcurves; c++){
+        float angle = 360. * c / numcurves;
+        struct Curve curve;
+        struct Point p0 = {0., 0., 0.};
+        struct Point p1 = {static_cast<float>(cos(angle)/5), -1., static_cast<float>(sin(angle)/5)};
+        struct Point p2 = {static_cast<float>(sin(angle)/4), -2., static_cast<float>(cos(angle)/4)};
+        struct Point p3 = {static_cast<float>(cos(angle)/3), static_cast<float>(-3.*(sin(angle)+1)), static_cast<float>(sin(angle)/3)};
+        curve.p0 = p0;
+        curve.p1 = p1;
+        curve.p2 = p2;
+        curve.p3 = p3;
+        curve.r = 0.2;
+        curve.g = 0.3;
+        curve.b = 0.;
+        DrawCurve(&curve);
+    }
+    glPopMatrix();
     
     
     
@@ -829,31 +882,58 @@ InitGraphics( )
 void
 InitLists( )
 {
-    char    *WorldTex = (char *) "world.bmp";
-    int     height;
-    int     width;
+
+    struct Curve stem;
+    struct Point p0[][3] =
+    {
+        { 0, 2, 3 },
+        { 0, 3, 1 },
+        { 4, 5, 7 },
+        { 4, 7, 6 },
+        { 1, 3, 7 },
+        { 1, 7, 5 },
+        { 0, 4, 6 },
+        { 0, 6, 2 },
+        { 2, 6, 7 },
+        { 2, 7, 3 },
+        { 0, 1, 5 },
+        { 0, 5, 4 }
+    };
+    
+    //Point p0 = stem.p0;
+    Point p1 = stem.p1;
+    Point p2 = stem.p2;
+    Point p3 = stem.p3;
+    
+    float r = 0;
+    float g = 0;
+    float b = 0;
+    
+    int NUMPOINTS = 10;
     
     glutSetWindow( MainWindow );
     
-    
-    
-   
     // Create the object:
     BoxList = glGenLists( 1 );
     glNewList(BoxList, GL_COMPILE);
+    /*
+    glLineWidth( 3. );
+    glColor3f( r, g, b );
+    glBegin( GL_LINE_STRIP );
+    for( int it = 0; it <= NUMPOINTS; it++ )
+    {
+        float t = (float)it / (float)NUMPOINTS;
+        float omt = 1.f - t;
+        float x = omt*omt*omt*p0.x + 3.f*t*omt*omt*p1.x + 3.f*t*t*omt*p2.x + t*t*t*p3.x;
+        float y = omt*omt*omt*p0.y + 3.f*t*omt*omt*p1.y + 3.f*t*t*omt*p2.y + t*t*t*p3.y;
+        float z = omt*omt*omt*p0.z + 3.f*t*omt*omt*p1.z + 3.f*t*t*omt*p2.z + t*t*t*p3.z;
+        glVertex3f( x, y, z );
+    }
+    glEnd( );
+    glLineWidth( 1. );
+     */
     
     
-    //glBindTexture(GL_TEXTURE_2D, tex0);
-    
-    MjbSphere(2, 2000, 2000);
-    
-    //glDisable(GL_TEXTURE_2D);
-    
-    glEndList();
-    
-    DistortList = glGenLists( 1 );
-    glNewList(DistortList, GL_COMPILE );
-    MjbSphere(2, 2000, 2000);
     glEndList();
     
 }
@@ -1265,143 +1345,55 @@ Unit( float vin[3], float vout[3] )
     }
     return dist;
 }
-
+/*
 void
-DrawPoint( struct point *p )
+RotateX( Point *p, float deg, float xc, float yc, float zc )
 {
-    glNormal3f( p->nx, p->ny, p->nz );
-    glTexCoord2f( p->s, p->t );
-    glVertex3f( p->x, p->y, p->z );
+    float rad = deg * (M_PI/180.f);         // radians
+    float x = p->x0 - xc;
+    float y = p->y0 - yc;
+    float z = p->z0 - zc;
+    
+    float xp = x;
+    float yp = y*cos(rad) - z*sin(rad);
+    float zp = y*sin(rad) + z*cos(rad);
+    
+    p->x = xp + xc;
+    p->y = yp + yc;
+    p->z = zp + zc;
 }
 
 void
-MjbSphere( float radius, int slices, int stacks )
+RotateY( Point *p, float deg, float xc, float yc, float zc )
 {
-    struct point top, bot;		// top, bottom points
-    struct point *p;
+    float rad = deg * (M_PI/180.f);         // radians
+    float x = p->x0 - xc;
+    float y = p->y0 - yc;
+    float z = p->z0 - zc;
     
-    // set the globals:
+    float xp =  x*cos(rad) + z*sin(rad);
+    float yp =  y;
+    float zp = -x*sin(rad) + z*cos(rad);
     
-    NumLngs = slices;
-    NumLats = stacks;
-    
-    if( NumLngs < 3 )
-        NumLngs = 3;
-    
-    if( NumLats < 3 )
-        NumLats = 3;
-    
-    
-    // allocate the point data structure:
-    
-    Pts = new struct point[ NumLngs * NumLats ];
-    
-    
-    // fill the Pts structure:
-    
-    for( int ilat = 0; ilat < NumLats; ilat++ )
-    {
-        float lat = -M_PI/2.  +  M_PI * (float)ilat / (float)(NumLats-1);
-        float xz = cos( lat );
-        float y = sin( lat );
-        for( int ilng = 0; ilng < NumLngs; ilng++ )
-        {
-            float lng = -M_PI  +  2. * M_PI * (float)ilng / (float)(NumLngs-1);
-            float x =  xz * cos( lng );
-            float z = -xz * sin( lng );
-            p = PtsPointer( ilat, ilng );
-            p->x  = radius * x;
-            p->y  = radius * y;
-            p->z  = radius * z;
-            p->nx = x;
-            p->ny = y;
-            p->nz = z;
-            
-            if( Distort )
-            {
-                p->s = (( (lng) + M_PI    ) / ( 3.0*M_PI ));
-                p->t = (( (lat) + M_PI/2.2 ) / M_PI );
-            }
-            
-            else
-            {
-                p->s = ( lng + M_PI    ) / ( 2.*M_PI );
-                p->t = ( lat + M_PI/2. ) / M_PI;
-            }
-        }
-    }
-    
-    top.x =  0.;		top.y  = radius;	top.z = 0.;
-    top.nx = 0.;		top.ny = 1.;		top.nz = 0.;
-    top.s  = 0.;		top.t  = 1.;
-    
-    bot.x =  0.;		bot.y  = -radius;	bot.z = 0.;
-    bot.nx = 0.;		bot.ny = -1.;		bot.nz = 0.;
-    bot.s  = 0.;		bot.t  =  0.;
-    
-    
-    // connect the north pole to the latitude NumLats-2:
-    
-    glBegin( GL_QUADS );
-    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-    {
-        p = PtsPointer( NumLats-1, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-2, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-2, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( NumLats-1, ilng+1 );
-        DrawPoint( p );
-    }
-    glEnd( );
-    
-    // connect the south pole to the latitude 1:
-    
-    glBegin( GL_QUADS );
-    for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-    {
-        p = PtsPointer( 0, ilng );
-        DrawPoint( p );
-        
-        p = PtsPointer( 0, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( 1, ilng+1 );
-        DrawPoint( p );
-        
-        p = PtsPointer( 1, ilng );
-        DrawPoint( p );
-    }
-    glEnd( );
-    
-    
-    // connect the other 4-sided polygons:
-    
-    glBegin( GL_QUADS );
-    for( int ilat = 2; ilat < NumLats-1; ilat++ )
-    {
-        for( int ilng = 0; ilng < NumLngs-1; ilng++ )
-        {
-            p = PtsPointer( ilat-1, ilng );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat-1, ilng+1 );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat, ilng+1 );
-            DrawPoint( p );
-            
-            p = PtsPointer( ilat, ilng );
-            DrawPoint( p );
-        }
-    }
-    glEnd( );
-    
-    delete [ ] Pts;
-    Pts = NULL;
+    p->x = xp + xc;
+    p->y = yp + yc;
+    p->z = zp + zc;
 }
 
+void
+RotateZ( Point *p, float deg, float xc, float yc, float zc )
+{
+    float rad = deg * (M_PI/180.f);         // radians
+    float x = p->x0 - xc;
+    float y = p->y0 - yc;
+    float z = p->z0 - zc;
+    
+    float xp = x*cos(rad) - y*sin(rad);
+    float yp = x*sin(rad) + y*cos(rad);
+    float zp = z;
+    
+    p->x = xp + xc;
+    p->y = yp + yc;
+    p->z = zp + zc;
+}
+*/
