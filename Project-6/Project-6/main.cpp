@@ -558,7 +558,7 @@ Display( )
     
     // Draw the stem
     glPushMatrix();
-    numcurves = 5;
+    numcurves = 10;
     for(int c = 0; c < numcurves; c++){
         float angle = 360. * c / numcurves;
         struct Curve curve;
