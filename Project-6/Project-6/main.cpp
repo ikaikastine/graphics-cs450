@@ -262,7 +262,7 @@ int     textureView;
 GLuint  DistortList;
 int     DrawControlPoints;
 int     DrawControlLines;
-
+bool    Frozen;
 int     NUMPOINTS = 1000;
 
 // function prototypes:
@@ -882,58 +882,12 @@ InitGraphics( )
 void
 InitLists( )
 {
-
-    struct Curve stem;
-    struct Point p0[][3] =
-    {
-        { 0, 2, 3 },
-        { 0, 3, 1 },
-        { 4, 5, 7 },
-        { 4, 7, 6 },
-        { 1, 3, 7 },
-        { 1, 7, 5 },
-        { 0, 4, 6 },
-        { 0, 6, 2 },
-        { 2, 6, 7 },
-        { 2, 7, 3 },
-        { 0, 1, 5 },
-        { 0, 5, 4 }
-    };
-    
-    //Point p0 = stem.p0;
-    Point p1 = stem.p1;
-    Point p2 = stem.p2;
-    Point p3 = stem.p3;
-    
-    float r = 0;
-    float g = 0;
-    float b = 0;
-    
-    int NUMPOINTS = 10;
     
     glutSetWindow( MainWindow );
     
     // Create the object:
     BoxList = glGenLists( 1 );
     glNewList(BoxList, GL_COMPILE);
-    /*
-    glLineWidth( 3. );
-    glColor3f( r, g, b );
-    glBegin( GL_LINE_STRIP );
-    for( int it = 0; it <= NUMPOINTS; it++ )
-    {
-        float t = (float)it / (float)NUMPOINTS;
-        float omt = 1.f - t;
-        float x = omt*omt*omt*p0.x + 3.f*t*omt*omt*p1.x + 3.f*t*t*omt*p2.x + t*t*t*p3.x;
-        float y = omt*omt*omt*p0.y + 3.f*t*omt*omt*p1.y + 3.f*t*t*omt*p2.y + t*t*t*p3.y;
-        float z = omt*omt*omt*p0.z + 3.f*t*omt*omt*p1.z + 3.f*t*t*omt*p2.z + t*t*t*p3.z;
-        glVertex3f( x, y, z );
-    }
-    glEnd( );
-    glLineWidth( 1. );
-     */
-    
-    
     glEndList();
     
 }
@@ -965,6 +919,23 @@ Keyboard( unsigned char c, int x, int y )
             DoMainMenu( QUIT );	// will not return here
             break;				// happy compiler
             
+        case 'f':
+        case 'F':
+            Frozen = ! Frozen;
+            if( Frozen )
+                glutIdleFunc( NULL );
+            else
+                glutIdleFunc( Animate );
+            break;
+            
+        case '1':
+            DrawControlPoints = !DrawControlPoints;
+            break;
+            
+        case '2':
+            DrawControlLines = !DrawControlLines;
+            break;    
+        
         default:
             fprintf( stderr, "Don't know what to do with keyboard hit: '%c' (0x%0x)\n", c, c );
     }
