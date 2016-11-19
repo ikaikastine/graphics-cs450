@@ -265,6 +265,9 @@ int     DrawControlLines;
 bool    Frozen;
 int     NUMPOINTS = 1000;
 
+GLuint  FlowerList;
+GLuint  StemList;
+
 // function prototypes:
 
 void	Animate( );
@@ -536,48 +539,47 @@ Display( )
     
     // Draw the flower
     glPushMatrix();
-    int numcurves = 25;
-    for(int c = 0; c < numcurves; c++){
-        float angle = 360. * c / numcurves;
-        float move = (sin(Time*2*M_PI)+1)/2.5;
-        struct Curve curve;
+    int numCurves = 25;
+    for(int i = 0; i < numCurves; i++){
+        float angle = 360. * i / numCurves;
+        float move = (cos(Time*5*M_PI)+1)/1;
+        struct Curve flower;
         struct Point p0 = {0., 0., 0.};
         struct Point p1 = {static_cast<float>(cos(angle)*2), 1., static_cast<float>(sin(angle)*2)};
         struct Point p2 = {static_cast<float>(cos(angle/3)*move*2), static_cast<float>(2.-move*2), static_cast<float>(sin(angle*3)*move*2)};
         struct Point p3 = {static_cast<float>(cos(angle/2)*move*3), static_cast<float>(3.-move*3), static_cast<float>(sin(angle/2)*move*3)};
-        curve.p0 = p0;
-        curve.p1 = p1;
-        curve.p2 = p2;
-        curve.p3 = p3;
-        curve.r = 1-p3.y/3;
-        curve.g = p3.y/3;
-        curve.b = 0.;
-        DrawCurve(&curve);
+        flower.p0 = p0;
+        flower.p1 = p1;
+        flower.p2 = p2;
+        flower.p3 = p3;
+        flower.r = 1-p3.y/3;
+        flower.g = p3.y/3;
+        flower.b = 0.;
+        DrawCurve(&flower);
     }
     glPopMatrix();
     
     // Draw the stem
     glPushMatrix();
-    numcurves = 10;
-    for(int c = 0; c < numcurves; c++){
-        float angle = 360. * c / numcurves;
-        struct Curve curve;
+    numCurves = 10;
+    for(int j = 0; j < numCurves; j++){
+        float angle = 360. * j / numCurves;
+        struct Curve stem;
         struct Point p0 = {0., 0., 0.};
         struct Point p1 = {static_cast<float>(cos(angle)/5), -1., static_cast<float>(sin(angle)/5)};
         struct Point p2 = {static_cast<float>(sin(angle)/4), -2., static_cast<float>(cos(angle)/4)};
         struct Point p3 = {static_cast<float>(cos(angle)/3), static_cast<float>(-3.*(sin(angle)+1)), static_cast<float>(sin(angle)/3)};
-        curve.p0 = p0;
-        curve.p1 = p1;
-        curve.p2 = p2;
-        curve.p3 = p3;
-        curve.r = 0.2;
-        curve.g = 0.3;
-        curve.b = 0.;
-        DrawCurve(&curve);
+        stem.p0 = p0;
+        stem.p1 = p1;
+        stem.p2 = p2;
+        stem.p3 = p3;
+        stem.r = 0.2;
+        stem.g = 0.3;
+        stem.b = 0.;
+        DrawCurve(&stem);
     }
     glPopMatrix();
-    
-    
+  
     
     // swap the double-buffered framebuffers:
     
@@ -885,10 +887,7 @@ InitLists( )
     
     glutSetWindow( MainWindow );
     
-    // Create the object:
-    BoxList = glGenLists( 1 );
-    glNewList(BoxList, GL_COMPILE);
-    glEndList();
+    
     
 }
 
