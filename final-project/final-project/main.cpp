@@ -269,14 +269,12 @@ int     BLADE_ANGLE;
 float   Time;
 int     MS_IN_THE_ANIMATION_CYCLE;
 int     MS_PER_CYCLE = 10;
-GLuint  TopBlades;
-GLuint  RearBlades;
 GLuint  RandomDraw;
 int     WhichView;
 int     WhichTex;
 GLuint  tex0, tex1, textureBind;
 int     textureView;
-GLuint  DistortList;
+GLuint  DeathStar;
 
 
 // function prototypes:
@@ -501,28 +499,30 @@ Display( )
     // since we are using glScalef( ), be sure normals get unitized:
     
     glEnable( GL_NORMALIZE );
+    /*
+    glPushMatrix();
+    glTranslatef(-10.0, 0., 0.);
+    glCallList( DeathStar );
+    glPopMatrix();
+    */
+    // Draw planet and translate it it +5.0 in the x direction
+    glPushMatrix();
+        glTranslatef(-10.0, 0., 0.);
+        glCallList( DeathStar );
+        //glTranslatef(10.0, 0., 0.);
     
-    
-    
-    glEnable(GL_TEXTURE_2D);
-    // draw the helicopter
-    
-    glMatrixMode( GL_TEXTURE );
-    glLoadIdentity();
-    if (WhichTex == REGULAR)
+        glTranslatef(10.0, 0., 0.);
+        glEnable(GL_TEXTURE_2D);
+        glMatrixMode( GL_TEXTURE );
+        glLoadIdentity();
         glBindTexture(GL_TEXTURE_2D, tex0);
-    else if (WhichTex == DISTORTED) {
-        glRotatef( 360.*Time, 0., 1., 0. );
-        glBindTexture(GL_TEXTURE_2D, tex0);
-        Distort = true;
-        glCallList( DistortList );
-    }
-    else
-        glBindTexture(GL_TEXTURE_2D, tex1);
+        glCallList( BoxList );
+        glDisable(GL_TEXTURE_2D);
     
-    glCallList( BoxList );
+    glTranslatef(-10.0, 0., 0.);
+    glPopMatrix();
     
-    glDisable(GL_TEXTURE_2D);
+    
     
     
     
@@ -829,14 +829,21 @@ InitGraphics( )
 void
 InitLists( )
 {
+    glutSetWindow( MainWindow );
+    
+    DeathStar = glGenLists( 1 );
+    glNewList(DeathStar, GL_COMPILE);
+    glPushMatrix();
+    MjbSphere(5, 2000, 2000);
+    glPopMatrix();
+    glEndList();
+    
     char    *WorldTex = (char *) "world.bmp";
     int     height;
     int     width;
     
-    glutSetWindow( MainWindow );
     
     unsigned char *Texture = BmpToTexture(WorldTex, &width, &height);
-    
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
@@ -856,20 +863,12 @@ InitLists( )
     // Create the object:
     BoxList = glGenLists( 1 );
     glNewList(BoxList, GL_COMPILE);
-    
-    
-    //glBindTexture(GL_TEXTURE_2D, tex0);
-    
-    MjbSphere(2, 2000, 2000);
-    
-    //glDisable(GL_TEXTURE_2D);
-    
+    glPushMatrix();
+    MjbSphere(5, 2000, 2000);
+    glPopMatrix();
     glEndList();
     
-    DistortList = glGenLists( 1 );
-    glNewList(DistortList, GL_COMPILE );
-    MjbSphere(2, 2000, 2000);
-    glEndList();
+   
     
 }
 
