@@ -177,7 +177,7 @@ float   Red[] = {1., 0., 0., 1.};
 float   Green[] = {0., 1., 0., 1.};
 float   Blue[] = {0., 0., 1., 1.};
 float   Cyan[] = {0., 1., 1., 1.};
-float   Gray[] = {.75, .75, .75, 1.};
+float   Gray[] = {.5, .5, .5, 1.};
 
 // utility to create an array from 3 seperate values:
 
@@ -574,6 +574,7 @@ Display( )
     
     glEnable( GL_LIGHT0 );
     
+    // Setup first x-wing in front
     glPushMatrix();
     glScalef(0.05, 0.05, 0.05);
     glTranslatef(5., 5., 0.);
@@ -582,22 +583,37 @@ Display( )
     glTranslatef(-5., -5., 0.);
     glPopMatrix();
     
+    // Setup second x-wing, off to the right side of view
     glPushMatrix();
     glScalef(0.05, 0.05, 0.05);
     glTranslatef(15, 10, 0.);
     glColor3f(.75, .75, .75);
     glCallList( XWing );
-    //glTranslatef(-5.5, -5.5, 0.);
     glPopMatrix();
-    
+
+    // Setup third x-wing, off to the left side of view
     glPushMatrix();
     glScalef(0.05, 0.05, 0.05);
     glTranslatef(0., 10., -10.);
     glColor3f(0., .5, 1.);
     glCallList( XWing );
-    //glTranslatef(-5.5, -5.5, 0.);
     glPopMatrix();
     
+    // Setup fourth x-wing, off to the left side of view
+    glPushMatrix();
+    glScalef(0.05, 0.05, 0.05);
+    glTranslatef(5., 15., -10.);
+    glColor3f(0., .5, 1.);
+    glCallList( XWing );
+    glPopMatrix();
+    
+    // Setup fifth x-wing, off to the left side of view
+    glPushMatrix();
+    glScalef(0.05, 0.05, 0.05);
+    glTranslatef(15., 15., -10.);
+    glColor3f(0., .5, 1.);
+    glCallList( XWing );
+    glPopMatrix();
     
     
     glPushMatrix();
