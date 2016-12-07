@@ -172,6 +172,38 @@ const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
 
 const GLfloat AXES_WIDTH   = { 3. };
 
+float   White[] = {1., 1., 1., 1.};
+float   Red[] = {1., 0., 0., 1.};
+float   Green[] = {0., 1., 0., 1.};
+float   Blue[] = {0., 0., 1., 1.};
+float   Cyan[] = {0., 1., 1., 1.};
+float   Gray[] = {.75, .75, .75, 1.};
+
+// utility to create an array from 3 seperate values:
+
+float *
+Array3( float a, float b, float c)
+{
+    static float array[4];
+    
+    array[0] = a;
+    array[1] = b;
+    array[2] = c;
+    array[3] = 1;
+    return array;
+}
+
+float *
+MulArray3( float factor, float array0[3])
+{
+    static float array[4];
+    
+    array[0] = factor * array0[0];
+    array[1] = factor * array0[1];
+    array[2] = factor * array0[2];
+    array[3] = 1;
+    return array;
+}
 
 // the color numbers:
 // this order must match the radio button order
@@ -288,7 +320,7 @@ GLuint	AxesList;				// list to hold the axes
 int		AxesOn;					// != 0 means to draw the axes
 int		DebugOn;				// != 0 means to print debugging info
 int		DepthCueOn;				// != 0 means to use intensity depth cueing
-GLuint	BoxList;				// object display list
+GLuint	PlanetList;				// object display list
 int		MainWindow;				// window id for main graphics window
 float	Scale;					// scaling factor
 int		WhichColor;				// index into Colors[ ]
@@ -306,6 +338,9 @@ GLuint  tex0, tex1, textureBind;
 int     textureView;
 GLuint  DeathStar;
 GLuint  XWing;
+GLuint  LightZero;
+
+GLuint  YWing;
 
 
 // function prototypes:
@@ -479,8 +514,9 @@ Display( )
     if (WhichView == OUTSIDE)
         gluLookAt( 5., 9., 5.,     0., 0., 0.,     0., 1., 0. );
     else
-        gluLookAt( -0.4, 1.8, -4.9,     0., 0., 0.,     0., 1., 0. );
-    
+        //gluLookAt( 0., .8, 1.,     0., 0., 0.,     0., 1., 0. );
+        gluLookAt( 0., .6, .8,     0., 0., 0.,     0., 1., 0. );
+
     
     
     
@@ -536,32 +572,57 @@ Display( )
     
     glEnable( GL_NORMALIZE );
     
+    glEnable( GL_LIGHT0 );
+    
     glPushMatrix();
-    glScalef(0.25, 0.25, 0.25);
-    glTranslatef(0., 5., 0.);
+    glScalef(0.05, 0.05, 0.05);
+    glTranslatef(5., 5., 0.);
+    glColor3f(0.75, .75, .75);
     glCallList( XWing );
+    glTranslatef(-5., -5., 0.);
     glPopMatrix();
+    
+    glPushMatrix();
+    glScalef(0.05, 0.05, 0.05);
+    glTranslatef(15, 10, 0.);
+    glColor3f(.75, .75, .75);
+    glCallList( XWing );
+    //glTranslatef(-5.5, -5.5, 0.);
+    glPopMatrix();
+    
+    glPushMatrix();
+    glScalef(0.05, 0.05, 0.05);
+    glTranslatef(0., 10., -10.);
+    glColor3f(0., .5, 1.);
+    glCallList( XWing );
+    //glTranslatef(-5.5, -5.5, 0.);
+    glPopMatrix();
+    
+    
+    
+    glPushMatrix();
+    glTranslatef(-5., 3., -7.);
+    glColor3f(.75, .1, 0.);
+    glCallList( PlanetList );
+    glPopMatrix();
+    
     
     // Draw planet and translate it it +5.0 in the x direction
     glPushMatrix();
-        glTranslatef(-10.0, 0., 0.);
-        glCallList( DeathStar );
-        //glTranslatef(10.0, 0., 0.);
-    
-        glTranslatef(10., 0., 0.);
-        glEnable(GL_TEXTURE_2D);
-        glMatrixMode( GL_TEXTURE );
-        glLoadIdentity();
-        glBindTexture(GL_TEXTURE_2D, tex0);
-        glCallList( BoxList );
-        glDisable(GL_TEXTURE_2D);
-    
-    //glTranslatef(-10.0, 0., 0.);
+    glTranslatef(25.0, 10., -35.);
+    glColor3f(.75, .75, .75);
+    glEnable(GL_TEXTURE_2D);
+    glMatrixMode( GL_TEXTURE );
+    glLoadIdentity();
+    glBindTexture(GL_TEXTURE_2D, tex0);
+    glCallList( DeathStar );
+    glDisable(GL_TEXTURE_2D);
+    glMatrixMode( GL_MODELVIEW );
     glPopMatrix();
     
-    
-    
-    
+    glPushMatrix();
+    glCallList( LightZero );
+    glPopMatrix();
     
     // swap the double-buffered framebuffers:
     
@@ -868,17 +929,64 @@ InitLists( )
 {
     glutSetWindow( MainWindow );
     
+
     DeathStar = glGenLists( 1 );
     glNewList(DeathStar, GL_COMPILE);
     glPushMatrix();
+
     MjbSphere(5, 2000, 2000);
     glPopMatrix();
+
     glEndList();
+    
+
     
     XWing = glGenLists( 1 );
     glNewList(XWing, GL_COMPILE);
+    glPushMatrix();
+
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+    glMaterialf(GL_BACK, GL_SHININESS, 5.);
+    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Gray));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Gray));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialf(GL_FRONT, GL_SHININESS, 2.);
+    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glShadeModel(GL_SMOOTH);
+    
+    glEnable( GL_LIGHTING );
+    
     LoadObjFile( "x-wing.obj" );
+    glPopMatrix();
+
     glEndList( );
+    
+    LightZero = glGenLists( 1 );
+    glNewList(LightZero, GL_COMPILE);
+    glPushMatrix();
+
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, MulArray3(.3f, White));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, Array3(0., 0., 2.));
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Array3(0., 0., 0.));
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 4.);
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, Array3(0., 0., 0.));
+    
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, MulArray3(1., White));
+    glLightfv(GL_LIGHT1, GL_SPECULAR, MulArray3(.7, White));
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.);
+
+    glPopMatrix();
+    glEndList();
     
     char    *WorldTex = (char *) "world.bmp";
     int     height;
@@ -903,10 +1011,25 @@ InitLists( )
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, Texture);
     // Create the object:
-    BoxList = glGenLists( 1 );
-    glNewList(BoxList, GL_COMPILE);
+    PlanetList = glGenLists( 1 );
+    glNewList(PlanetList, GL_COMPILE);
     glPushMatrix();
-    MjbSphere(5, 2000, 2000);
+    glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4, White));
+    glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+    glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+    glMaterialf(GL_BACK, GL_SHININESS, 5.);
+    glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, MulArray3(1., Red));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, MulArray3(1., Red));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.7, White));
+    glMaterialf(GL_FRONT, GL_SHININESS, 20.);
+    glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+    
+    glShadeModel(GL_FLAT);
+    
+    glEnable( GL_LIGHTING );
+    MjbSphere(8, 2000, 2000);
     glPopMatrix();
     glEndList();
     
